@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(npm -v)",
-      "Bash(cd \"/c/Users/KaysenGamiz/Proyectos/BodaInvitaciones\" && mkdir -p config models routes middleware scripts views public/css public/img scratchpad 2>&1)"
-    ]
-  }
-}
