@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= event.novios %></title>
+  <%- include('partials/head-fonts') %>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="splash" id="splash">
+    <div class="splash-label">Estás invitado…</div>
+    <img class="splash-envelope" src="/img/sobre-intro.png" alt="Sobre de invitación" />
+    <div class="splash-hint">Presiona el sobre para iniciar</div>
+  </div>
+
+  <div class="wrap content" id="content">
+    <img class="banner-img" src="/img/banner-boda.png" alt="Boda de <%= event.novios %>" />
+    <div class="card">
+      <div class="guest-name">
+        Hola, <%= invitation.familyName || invitation.members[0].name %>
+      </div>
+
+      <p class="welcome"><%= event.mensajeBienvenida %></p>
+
+      <% if (error) { %>
+        <div class="error-msg"><%= error %></div>
+      <% } %>
+
+      <div class="section">
+        <h2>Ubicación</h2>
+        <% if (anyoneAttending) { %>
+          <div class="detail-row">
+            <div class="label">Ceremonia · <%= event.ceremonia.hora %></div>
+            <div><%= event.ceremonia.lugarNombre %></div>
+            <div><%= event.ceremonia.direccion %></div>
+            <a class="map-link" href="<%= event.ceremonia.mapaUrl %>" target="_blank" rel="noopener">Ver mapa</a>
+          </div>
+          <div class="detail-row" style="margin-top: 18px;">
+            <div class="label">Recepción · <%= event.recepcion.hora %></div>
+            <div><%= event.recepcion.lugarNombre %></div>
+            <div><%= event.recepcion.direccion %></div>
+            <a class="map-link" href="<%= event.recepcion.mapaUrl %>" target="_blank" rel="noopener">Ver mapa</a>
+          </div>
+          <% if (event.codigoVestimenta) { %>
+            <div class="detail-row" style="margin-top: 18px;">
+              <div class="label">Código de vestimenta</div>
+              <div><%= event.codigoVestimenta %></div>
+            </div>
+          <% } %>
+          <% if (event.paletaColores && event.paletaColores.length) { %>
+            <div class="detail-row" style="margin-top: 18px;">
+              <div class="label">Paleta de colores</div>
+              <div class="color-palette">
+                <% event.paletaColores.forEach(function(color) { %>
+                  <span class="swatch" style="background: <%= color %>;" title="<%= color %>"></span>
+                <% }) %>
+              </div>
+            </div>
+          <% } %>
+        <% } else { %>
+          <div class="locked">La ubicación se mostrará aquí en cuanto alguien de la invitación confirme asistencia.</div>
+        <% } %>
+      </div>
+
+      <div class="section">
+        <h2>Confirmar asistencia</h2>
+        <form class="rsvp-form" method="POST" action="/i/<%= invitation.token %>/rsvp">
+          <% invitation.members.forEach(function(member, i) { %>
+            <label class="field-label"><%= member.name %></label>
+            <div class="choice-group">
+              <label>
+                <input type="radio" name="member_<%= i %>" value="yes" <%= member.attending === true ? 'checked' : '' %> required />
+                Asistirá
+              </label>
+              <label>
+                <input type="radio" name="member_<%= i %>" value="no" <%= member.attending === false ? 'checked' : '' %> />
+                No asistirá
+              </label>
+            </div>
+          <% }) %>
+
+          <label class="field-label">Número de contacto</label>
+          <% if (invitation.phone) { %>
+            <div class="detail-row" style="font-size: 1.05rem; font-weight: 600;"><%= invitation.phone %></div>
+            <label style="display: flex; align-items: center; gap: 8px; margin: 10px 0 16px;">
+              <input type="checkbox" name="phoneConfirmed" value="yes" style="width: auto;" <%= invitation.phoneConfirmed ? 'checked' : '' %> />
+              Sí, es correcto
+            </label>
+            <label class="field-label" for="phoneCorrection">¿Está mal? Escribe el número correcto aquí</label>
+            <input type="text" id="phoneCorrection" name="phoneCorrection" placeholder="Ej. 686-123-4567" />
+          <% } else { %>
+            <input type="text" id="phoneCorrection" name="phoneCorrection" placeholder="Ej. 686-123-4567" />
+          <% } %>
+
+          <% if (invitation.allowPlusOne) { %>
+            <label class="field-label">¿Alguien llevará un acompañante adicional?</label>
+            <div class="choice-group">
+              <label>
+                <input type="radio" name="plusOneAttending" value="yes" <%= invitation.plusOneAttending ? 'checked' : '' %> />
+                Sí
+              </label>
+              <label>
+                <input type="radio" name="plusOneAttending" value="no" <%= !invitation.plusOneAttending ? 'checked' : '' %> />
+                No
+              </label>
+            </div>
+            <label class="field-label" for="plusOneName">Nombre del acompañante</label>
+            <input type="text" id="plusOneName" name="plusOneName" value="<%= invitation.plusOneName %>" placeholder="Nombre completo" />
+          <% } %>
+
+          <label class="field-label" for="notes">Notas (alergias, restricciones alimenticias, etc.)</label>
+          <textarea id="notes" name="notes" placeholder="Opcional"><%= invitation.notes %></textarea>
+
+          <div class="center">
+            <button class="btn btn-primary" type="submit">Guardar respuesta</button>
+          </div>
+        </form>
+      </div>
+
+      <% if (event.fechaLimiteRSVP) { %>
+        <div class="footer-note">Por favor confirma antes del <%= event.fechaLimiteRSVP %>.</div>
+      <% } %>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var splash = document.getElementById('splash');
+      var content = document.getElementById('content');
+      var hasError = <%- error ? 'true' : 'false' %>;
+      var justSubmitted = <%- submitted ? 'true' : 'false' %>;
+
+      function openEnvelope() {
+        splash.classList.add('is-open');
+        content.classList.add('is-visible');
+      }
+
+      splash.addEventListener('click', openEnvelope);
+
+      // Si venimos de un error de formulario o de guardar la respuesta, abrir directo sin esperar el clic.
+      if (hasError || justSubmitted) openEnvelope();
+    })();
+  </script>
+</body>
+</html>

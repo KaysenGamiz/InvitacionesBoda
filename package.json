@@ -1,0 +1,21 @@
+{
+  "name": "boda-invitaciones",
+  "version": "1.0.0",
+  "description": "App de invitaciones de boda con RSVP y links unicos por invitado",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "import": "node scripts/importCsv.js"
+  },
+  "dependencies": {
+    "connect-mongo": "^5.1.0",
+    "csv-parse": "^5.5.6",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "mongoose": "^8.5.0",
+    "nanoid": "^3.3.7"
+  }
+}

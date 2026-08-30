@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= event.novios %></title>
+  <%- include('partials/head-fonts') %>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <img class="banner-img" src="/img/banner-boda.png" alt="Boda de <%= event.novios %>" />
+    <div class="card center">
+      <div class="date-banner"><%= event.fechaTexto %> · <%= event.lugarCorto %></div>
+      <p>Esta invitación es personal. Si recibiste un link de invitación, ábrelo directamente para ver los detalles y confirmar tu asistencia.</p>
+    </div>
+  </div>
+</body>
+</html>

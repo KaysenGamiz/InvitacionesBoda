@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin · <%= invitation ? 'Editar invitación' : 'Nueva invitación' %></title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235c1620'/%3E%3Ctext x='32' y='43' font-family='Georgia, serif' font-size='26' fill='%23efe6d8' text-anchor='middle'%3ERK%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="admin">
+  <div class="admin-wrap">
+    <div class="card" style="max-width: 480px; margin: 0 auto;">
+      <h1><%= invitation ? 'Editar invitación' : 'Nueva invitación' %></h1>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="error-msg"><%= error %></div>
+      <% } %>
+      <form method="POST" action="<%= invitation && invitation._id ? '/admin/guests/' + invitation._id : '/admin/guests' %>">
+        <label class="field-label" for="familyName">Nombre de familia / grupo (opcional)</label>
+        <input type="text" id="familyName" name="familyName" value="<%= invitation ? invitation.familyName : '' %>" placeholder="Ej. Familia Perez" />
+
+        <label class="field-label" for="membersText">Miembros (un nombre por línea)</label>
+        <textarea id="membersText" name="membersText" rows="5" placeholder="Juan Perez&#10;Maria Perez" required><%= invitation ? invitation.members.map(function(m){ return m.name; }).join('\n') : '' %></textarea>
+        <div class="footer-note" style="margin-top: 6px;">Para una sola persona, escribe solo un nombre.</div>
+
+        <label class="field-label" for="phone">Teléfono</label>
+        <input type="text" id="phone" name="phone" value="<%= invitation ? invitation.phone : '' %>" placeholder="Ej. 686-123-4567" />
+        <% if (invitation && invitation.phoneConfirmed) { %>
+          <div class="footer-note" style="margin-top: 4px; text-align: left;">✓ Confirmado por el invitado</div>
+        <% } %>
+
+        <label style="display:block; margin-top: 16px;">
+          <input type="checkbox" name="allowPlusOne" <%= invitation && invitation.allowPlusOne ? 'checked' : '' %> />
+          Permitir un acompañante adicional (+1) no listado arriba
+        </label>
+
+        <div class="center" style="margin-top: 20px;">
+          <button class="btn btn-primary" type="submit">Guardar</button>
+          <a class="btn" href="/admin">Cancelar</a>
+        </div>
+      </form>
+
+      <% if (invitation && invitation._id && typeof otherInvitations !== 'undefined' && otherInvitations.length) { %>
+        <div class="section">
+          <h2>Agregar a este grupo</h2>
+          <div class="footer-note" style="margin: 0 0 10px;">
+            Esta invitación funciona como la "cabeza de familia": busca a alguien que ya tenga
+            su propia invitación individual y agrégalo aquí para que comparta este mismo link.
+            Su invitación individual se elimina y sus nombres pasan a la lista de arriba.
+          </div>
+          <form method="POST" action="/admin/guests/<%= invitation._id %>/merge" style="display:flex; gap:8px;">
+            <select name="sourceId" required style="flex:1; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:1rem;">
+              <option value="">Selecciona una invitación existente…</option>
+              <% otherInvitations.forEach(function(inv) { %>
+                <option value="<%= inv._id %>">
+                  <%= inv.members.map(function(m){ return m.name; }).join(', ') %><% if (inv.familyName) { %> (<%= inv.familyName %>)<% } %>
+                </option>
+              <% }) %>
+            </select>
+            <button class="btn" type="submit">Agregar</button>
+          </form>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

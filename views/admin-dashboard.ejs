@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin · Invitaciones</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235c1620'/%3E%3Ctext x='32' y='43' font-family='Georgia, serif' font-size='26' fill='%23efe6d8' text-anchor='middle'%3ERK%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="admin">
+  <div class="admin-wrap">
+    <div class="top-bar">
+      <h1>Invitaciones</h1>
+      <div>
+        <a class="btn" href="/admin/guests/new">+ Agregar invitación</a>
+        <form method="POST" action="/admin/logout" style="display:inline;">
+          <button class="btn" type="submit">Salir</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box filterable active" data-filter="all"><div class="num"><%= stats.totalInvitations %></div><div class="lbl">Invitaciones</div></div>
+      <div class="stat-box filterable" data-filter="responded"><div class="num"><%= stats.responded %></div><div class="lbl">Respondidas</div></div>
+      <div class="stat-box filterable" data-filter="pending"><div class="num"><%= stats.pending %></div><div class="lbl">Pendientes</div></div>
+      <div class="stat-box filterable" data-filter="all"><div class="num"><%= stats.totalInvited %></div><div class="lbl">Personas invitadas</div></div>
+      <div class="stat-box filterable" data-filter="attending"><div class="num"><%= stats.headcount %></div><div class="lbl">Confirmados a asistir</div></div>
+    </div>
+
+    <table class="guests">
+      <thead>
+        <tr>
+          <th class="sortable">Familia / Grupo</th>
+          <th class="sortable">Miembros</th>
+          <th class="sortable">Teléfono</th>
+          <th class="sortable">+1 permitido</th>
+          <th class="sortable">Acompañante</th>
+          <th class="sortable">Notas</th>
+          <th class="sortable">Link de invitación</th>
+          <th class="sortable center">Invitación enviada</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% invitations.forEach(function(inv) { %>
+          <tr data-status="<%= inv.status %>" data-attending="<%= (inv.members.some(function(m){ return m.attending === true; }) || (inv.allowPlusOne && inv.plusOneAttending)) ? 'yes' : 'no' %>">
+            <td data-sort-value="<%= (inv.familyName || '').toLowerCase() %>"><%= inv.familyName || '—' %></td>
+            <td data-sort-value="<%= inv.members.map(function(m){ return m.name; }).join(', ').toLowerCase() %>">
+              <% inv.members.forEach(function(m) { %>
+                <div>
+                  <%= m.name %>
+                  <span class="status-badge status-<%= m.attending === true ? 'accepted' : (m.attending === false ? 'declined' : 'pending') %>">
+                    <%= m.attending === true ? 'asiste' : (m.attending === false ? 'no asiste' : 'pendiente') %>
+                  </span>
+                </div>
+              <% }) %>
+            </td>
+            <td data-sort-value="<%= (inv.phone || '').toLowerCase() %>">
+              <% if (inv.phone) { %>
+                <%= inv.phone %>
+                <span class="status-badge status-<%= inv.phoneConfirmed ? 'accepted' : 'pending' %>">
+                  <%= inv.phoneConfirmed ? 'confirmado' : 'sin confirmar' %>
+                </span>
+              <% } else { %>
+                —
+              <% } %>
+            </td>
+            <td data-sort-value="<%= inv.allowPlusOne ? 'si' : 'no' %>"><%= inv.allowPlusOne ? 'Sí' : 'No' %></td>
+            <td data-sort-value="<%= (inv.allowPlusOne && inv.plusOneAttending ? (inv.plusOneName || 'si, sin nombre') : '').toLowerCase() %>"><%= inv.allowPlusOne && inv.plusOneAttending ? (inv.plusOneName || 'Sí, sin nombre') : '—' %></td>
+            <td data-sort-value="<%= (inv.notes || '').toLowerCase() %>"><%= inv.notes %></td>
+            <td data-sort-value="<%= inv.token.toLowerCase() %>"><span class="link-box"><%= baseUrl %>/i/<%= inv.token %></span></td>
+            <td data-sort-value="<%= inv.invitationSent ? '1' : '0' %>" class="center">
+              <label class="toggle-switch" title="<%= inv.invitationSent ? 'Enviada' : 'Sin enviar' %>">
+                <input type="checkbox" class="sent-checkbox" data-id="<%= inv._id %>" <%= inv.invitationSent ? 'checked' : '' %> />
+                <span class="toggle-slider"></span>
+              </label>
+            </td>
+            <td class="actions">
+              <a href="/admin/guests/<%= inv._id %>/edit">Editar</a>
+              <form method="POST" action="/admin/guests/<%= inv._id %>/delete" style="display:inline;" onsubmit="return confirm('¿Eliminar esta invitación?');">
+                <button type="submit" style="background:none;border:none;color:#a84f4f;cursor:pointer;padding:0;">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    (function () {
+      var table = document.querySelector('table.guests');
+      if (!table) return;
+      var headers = Array.prototype.slice.call(table.querySelectorAll('th.sortable'));
+
+      headers.forEach(function (th) {
+        th.addEventListener('click', function () {
+          var index = Array.prototype.indexOf.call(th.parentNode.children, th);
+          var order = th.getAttribute('data-order') === 'asc' ? 'desc' : 'asc';
+          headers.forEach(function (h) { h.removeAttribute('data-order'); });
+          th.setAttribute('data-order', order);
+
+          var tbody = table.querySelector('tbody');
+          var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+
+          rows.sort(function (a, b) {
+            var cellA = a.children[index];
+            var cellB = b.children[index];
+            var valA = (cellA.getAttribute('data-sort-value') || cellA.textContent).trim();
+            var valB = (cellB.getAttribute('data-sort-value') || cellB.textContent).trim();
+            var cmp = valA.localeCompare(valB, 'es', { sensitivity: 'base' });
+            return order === 'asc' ? cmp : -cmp;
+          });
+
+          rows.forEach(function (row) { tbody.appendChild(row); });
+        });
+      });
+
+      var sentCheckboxes = Array.prototype.slice.call(document.querySelectorAll('.sent-checkbox'));
+      sentCheckboxes.forEach(function (checkbox) {
+        checkbox.addEventListener('change', function () {
+          var id = checkbox.getAttribute('data-id');
+          var checked = checkbox.checked;
+          checkbox.closest('td').setAttribute('data-sort-value', checked ? '1' : '0');
+          fetch('/admin/guests/' + id + '/sent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'sent=' + checked,
+          }).catch(function () {
+            checkbox.checked = !checked;
+            alert('No se pudo guardar el cambio, intenta de nuevo.');
+          });
+        });
+      });
+
+      var cards = Array.prototype.slice.call(document.querySelectorAll('.stat-box.filterable'));
+      cards.forEach(function (card) {
+        card.addEventListener('click', function () {
+          var filter = card.getAttribute('data-filter');
+          cards.forEach(function (c) { c.classList.remove('active'); });
+          card.classList.add('active');
+
+          var rows = table.querySelectorAll('tbody tr');
+          rows.forEach(function (row) {
+            var matches =
+              filter === 'all' ||
+              (filter === 'attending' ? row.getAttribute('data-attending') === 'yes' : row.getAttribute('data-status') === filter);
+            row.style.display = matches ? '' : 'none';
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
