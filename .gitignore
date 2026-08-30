@@ -2,4 +2,4 @@ node_modules/
 .env
 *.csv
 !sample-invitados.csv
-.env.example
+.claude/settings.local.json
