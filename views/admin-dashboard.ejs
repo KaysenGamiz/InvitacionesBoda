@@ -42,7 +42,10 @@
         </tr>
       </thead>
       <tbody>
+        <% var novios = event.novios.replace(' & ', ' y '); %>
         <% invitations.forEach(function(inv) { %>
+          <% var link = baseUrl + '/i/' + inv.token; %>
+          <% var copyMessage = '🎉 ¡Estás invitado! Acompaña a ' + novios + ' 💍 en su día especial. Por favor utiliza este formulario para confirmar tu asistencia 📋💌\n' + link; %>
           <tr data-status="<%= inv.status %>" data-attending="<%= (inv.members.some(function(m){ return m.attending === true; }) || (inv.allowPlusOne && inv.plusOneAttending)) ? 'yes' : 'no' %>">
             <td data-sort-value="<%= (inv.familyName || '').toLowerCase() %>"><%= inv.familyName || '—' %></td>
             <td data-sort-value="<%= inv.members.map(function(m){ return m.name; }).join(', ').toLowerCase() %>">
@@ -68,7 +71,11 @@
             <td data-sort-value="<%= inv.allowPlusOne ? 'si' : 'no' %>"><%= inv.allowPlusOne ? 'Sí' : 'No' %></td>
             <td data-sort-value="<%= (inv.allowPlusOne && inv.plusOneAttending ? (inv.plusOneName || 'si, sin nombre') : '').toLowerCase() %>"><%= inv.allowPlusOne && inv.plusOneAttending ? (inv.plusOneName || 'Sí, sin nombre') : '—' %></td>
             <td data-sort-value="<%= (inv.notes || '').toLowerCase() %>"><%= inv.notes %></td>
-            <td data-sort-value="<%= inv.token.toLowerCase() %>"><span class="link-box"><%= baseUrl %>/i/<%= inv.token %></span></td>
+            <td data-sort-value="<%= inv.token.toLowerCase() %>">
+              <span class="link-box copy-link" data-message="<%= copyMessage %>" title="Clic para copiar mensaje + link">
+                <%= link %>
+              </span>
+            </td>
             <td data-sort-value="<%= inv.invitationSent ? '1' : '0' %>" class="center">
               <label class="toggle-switch" title="<%= inv.invitationSent ? 'Enviada' : 'Sin enviar' %>">
                 <input type="checkbox" class="sent-checkbox" data-id="<%= inv._id %>" <%= inv.invitationSent ? 'checked' : '' %> />
@@ -130,6 +137,31 @@
             checkbox.checked = !checked;
             alert('No se pudo guardar el cambio, intenta de nuevo.');
           });
+        });
+      });
+
+      var copyLinks = Array.prototype.slice.call(document.querySelectorAll('.copy-link'));
+      copyLinks.forEach(function (el) {
+        el.addEventListener('click', function () {
+          var message = el.getAttribute('data-message');
+          var original = el.textContent;
+
+          function showCopied() {
+            el.classList.add('copied');
+            el.textContent = '✅ ¡Copiado!';
+            setTimeout(function () {
+              el.textContent = original;
+              el.classList.remove('copied');
+            }, 1500);
+          }
+
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(message).then(showCopied).catch(function () {
+              alert('No se pudo copiar. Copia el link manualmente.');
+            });
+          } else {
+            alert('No se pudo copiar. Copia el link manualmente.');
+          }
         });
       });
 

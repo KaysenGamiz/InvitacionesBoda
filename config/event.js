@@ -33,6 +33,7 @@ module.exports = {
     '#A69265',
   ],
   mensajeBienvenida: 'Nos encantaría que nos acompañes en este día tan especial.',
+  mensajeRegalo: 'Tu presencia es nuestro mejor regalo. Si deseas obsequiarnos algo, apreciaríamos un regalo en efectivo.',
 
   // Fecha limite para confirmar asistencia (opcional, solo informativo en la vista)
   fechaLimiteRSVP: '2026-10-01',

@@ -58,6 +58,12 @@
               </div>
             </div>
           <% } %>
+          <% if (event.mensajeRegalo) { %>
+            <div class="detail-row" style="margin-top: 18px;">
+              <div class="label">Regalos</div>
+              <div><%= event.mensajeRegalo %></div>
+            </div>
+          <% } %>
         <% } else { %>
           <div class="locked">La ubicación se mostrará aquí en cuanto alguien de la invitación confirme asistencia.</div>
         <% } %>

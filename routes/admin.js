@@ -3,6 +3,7 @@ const router = express.Router();
 const { nanoid } = require('nanoid');
 const Invitation = require('../models/Invitation');
 const requireAdmin = require('../middleware/auth');
+const event = require('../config/event');
 
 router.get('/login', (req, res) => {
   if (req.session && req.session.isAdmin) {
@@ -41,7 +42,7 @@ router.get('/', async (req, res) => {
     }, 0),
   };
 
-  res.render('admin-dashboard', { invitations, stats, baseUrl: process.env.BASE_URL || '' });
+  res.render('admin-dashboard', { invitations, stats, baseUrl: process.env.BASE_URL || '', event });
 });
 
 // Convierte el textarea de miembros (un nombre por linea) en un array,
