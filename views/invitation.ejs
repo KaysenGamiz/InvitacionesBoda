@@ -70,6 +70,15 @@
       </div>
 
       <div class="section">
+        <h2>Información importante</h2>
+        <ul class="policy-list">
+          <li>Solo las personas nombradas en esta invitación podrán entrar.</li>
+          <li>No se permitirá la entrada a adicionales no mencionados en la invitación.</li>
+          <li>No se permiten niños.</li>
+        </ul>
+      </div>
+
+      <div class="section">
         <h2>Confirmar asistencia</h2>
         <form class="rsvp-form" method="POST" action="/i/<%= invitation.token %>/rsvp">
           <% invitation.members.forEach(function(member, i) { %>
